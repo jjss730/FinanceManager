@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>645</width>
+    <width>396</width>
     <height>417</height>
    </rect>
   </property>
@@ -288,6 +288,19 @@
     </property>
     <property name="text">
      <string>Number of Iterations</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_plt">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>290</y>
+      <width>111</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Matplotlib</string>
     </property>
    </widget>
   </widget>

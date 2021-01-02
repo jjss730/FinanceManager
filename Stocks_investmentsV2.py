@@ -3,14 +3,42 @@
 import sys
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QTableWidgetItem
-from PyQt5.QtWidgets import QMessageBox, QApplication, QWidget
+from PyQt5.QtWidgets import QWidget, QMainWindow
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\
+	as FigureCanvas
 from matplotlib.figure import Figure
+
+
+class MainWindow(QMainWindow):
+	"""Create Main Window."""
+
+	def __init__(self):
+		super(MainWindow, self).__init__()
+		uic.loadUi('test.ui', self)
+		self.show()
+		
+#	def MyUI(self):
+#		canvas = Canvas(self, width=8, height=4)
+#		canvas.move(50, 0)
+
+
+class NewWindow(QMainWindow):
+	"""Create Result Window."""
+	
+	def __init__(self):
+		super(NewWindow, self).__init__()
+		uic.loadUi('chartWindow.ui', self)
+#		self.show()
+		
+	def MyUI(self):
+		"""Prepare Canvas for result chart."""
+		canvas = Canvas(self, width=6, height=3)
+		canvas.move(5, 5)
 
 
 class Portfolio:
@@ -42,27 +70,30 @@ class Portfolio:
 		local_log_returns = np.log(self.local_returns / self.local_returns.shift(1))
 		np.random.seed(1)
 		all_weights = np.zeros((self.variations, len(self.local_returns.columns)))
-		ret_arr = np.zeros(self.variations)
-		vol_arr = np.zeros(self.variations)
-		sharpe_arr = np.zeros(self.variations)
+		self.ret_arr = np.zeros(self.variations)
+		self.vol_arr = np.zeros(self.variations)
+		self.sharpe_arr = np.zeros(self.variations)
 	
 		for j in range(self.variations):
 			weights = np.array(np.random.random(len(
 				self.local_returns.columns)))       # weights
 			weights = weights / np.sum(weights)
 			all_weights[j, :] = weights         # Save weights
-			ret_arr[j] = np.sum((
+			self.ret_arr[j] = np.sum((
 				local_log_returns.mean() * weights * 252))   # Expected return
-			vol_arr[j] = np.sqrt(np.dot(weights.T, np.dot(
+			self.vol_arr[j] = np.sqrt(np.dot(weights.T, np.dot(
 				local_log_returns.cov() * 252, weights)))  # Expected volatility.
-			sharpe_arr[j] = ret_arr[j] / vol_arr[j]
+			self.sharpe_arr[j] = self.ret_arr[j] / self.vol_arr[j]
 		
-		self.max_sr_ret = ret_arr[sharpe_arr.argmax()]
-		self.max_sr_vol = vol_arr[sharpe_arr.argmax()]
-		self.max_sr_weights = all_weights[sharpe_arr.argmax()]
-		self.max_sr = sharpe_arr[sharpe_arr.argmax()]
-		self.port_weights = df_portfolio['Quant'].tolist() / df_portfolio['Quant'].sum()
-		self.port_ret = np.sum((local_log_returns.mean()* self.port_weights * 252))   # Expected return
+		self.max_sr_ret = self.ret_arr[self.sharpe_arr.argmax()]
+		self.max_sr_vol = self.vol_arr[self.sharpe_arr.argmax()]
+		self.max_sr_weights = all_weights[self.sharpe_arr.argmax()]
+		self.max_sr = \
+			self.sharpe_arr[self.sharpe_arr.argmax()]
+		self.port_weights = \
+			df_portfolio['Quant'].tolist() / df_portfolio['Quant'].sum()
+		self.port_ret = np.sum((local_log_returns.
+			mean() * self.port_weights * 252))   # Expected return
 		self.port_vol = np.sqrt(np.dot(self.port_weights.T, np.dot(
 			local_log_returns.cov() * 252, self.port_weights)))  # Expected volatility
 		self.port_sharpe = self.port_ret / self.port_vol
@@ -108,36 +139,70 @@ class Portfolio:
 	def max_sharpe_ratio(self):
 		return self.max_sr
 	
+	def return_array(self):
+		"""Provide Returns Array."""
+		return self.ret_arr
+
+	def volatility_array(self):
+		"""Provide Volatility Array."""
+		return self.vol_arr
+	
+	def sharpe_array(self):
+		"""Provide Sharpe Ratio Array."""
+		return self.sharpe_arr
+	
 		
 class Canvas(FigureCanvas):
 	"""Include chart in PyQT5."""
 	
 	def __init__(self, parent = None, width = 5, height = 5, dpi = 100):
-		fig = Figure(figsize=(width, height), dpi = dpi)
-		self.axes = fig.add_subplot(111)
-		
+		fig = Figure(figsize=(width, height), edgecolor='black', dpi = dpi)
+#		self.axes = fig.add_subplot(2, 2, 1)
 		FigureCanvas.__init__(self, fig)
+
 		self.setParent(parent)
-		
-		self.plot
+		self.plot()
 		
 	def plot(self):
-		x = np.array([50, 30, 40])
-		labels = ["Apples", "Bananas", "Melons"]
-		ax = self.figure.add_subplot(111)
-		ax.pie(x, labels)
+		"""Plot pie chart of portfolio distribution."""
+		global df_portfolio
+		global df_portfolio_sharpe
 		
+		# Prepare portfolio distribution pie chart
+		port_y = df_portfolio['Stocks']
+		port_x = df_portfolio['Quant']
+		ax = self.figure.add_subplot(2, 2, 1, title = "Curerent Portfolio")
+		ax.pie(port_x, labels = port_y)
 		
-class AppDemo(QWidget):
+		# Prepare highest Sharpe ratio distribution pie chart
+		shrp_y = df_portfolio['Stocks']
+		shrp_x = df_portfolio_sharpe
+#		shrp_x = df_portfolio['Quant']
+		ax2 = self.figure.add_subplot(2, 2, 2, title = "Optimized Portfolio")
+		ax2.pie(shrp_x, labels = shrp_y)
+		
+		# Prepare Efficient Fronteir chart
+		ax3 = self.figure.add_subplot(2, 2, 3,
+				title = "Efficient Fronteir",
+				xlabel = "Expected Volatillity",
+				ylabel = "Expected Returns")
+#		ax3 = self.figure.add_subplot(gs1[:1, :],
+#				title = "Efficient Fronteir",
+#				xlabel = "Expected Volatillity",
+#				ylabel = "Expected Returns")
+		ax3.scatter(df_volatility, df_returns, c= df_sharpe)
+
+		
+#class AppDemo(QWidget):
 	
-	def __init__(self):
-		super().__init__()
-		self.resize(1600,800)
-		
-		chart = Canvas(self)
+#	def __init__(self):
+#		super().__init__()
+#		self.resize(200, 200)
+#		chart = Canvas(self)
 
 
 def add_item():
+	"""Add stock to porfolio list."""
 	ticker = dlg.txt_ticker.text()
 	try:
 		quant = int(dlg.txt_quant.text())
@@ -160,6 +225,7 @@ def add_item():
 
 
 def read_table():
+	"""Read Stock table and transfers table data to df_portfolio."""
 	global df_portfolio
 	rowCount = dlg.tbl_portfolio.rowCount()
 	columnCount = dlg.tbl_portfolio.columnCount()
@@ -176,11 +242,15 @@ def read_table():
 	df_portfolio = temp_df.copy()
 	return temp_df
 
+
 def clear_table():
+	"""Clear porfolio stocks table."""
 	dlg.tbl_portfolio.clear()
 	dlg.tbl_portfolio.setRowCount(0)
 
+
 def ticker_box_changed():
+	"""Dectect changes in ticker box to enable 'add' button."""
 	if dlg.txt_ticker.text() == '':
 		dlg.btn_add.setEnabled(False)
 	else:
@@ -188,14 +258,19 @@ def ticker_box_changed():
 
 
 def fetchData():
-	#global df_returns
-	#global df_volume
-	local_returns_df = read_table()
+	"""Gather data from yfinance API and calls portfolio calculations."""
+	global df_returns
+	global df_volatility
+	global df_sharpe
+	global df_portfolio
+	global df_portfolio_sharpe
+	
+	local_portfolio_df = read_table()
 	# read_table()
 	start_date = dlg.dt_init.text()
 	end_date = dlg.dt_end.text()
-	# port1 = Portfolio(df_portfolio['Stocks'], df_portfolio['Quant'], start_date, end_date, 100)
-	port1 = Portfolio(local_returns_df['Stocks'], local_returns_df['Quant'], start_date, end_date, num_port)
+	port1 = Portfolio(local_portfolio_df['Stocks'],
+			local_portfolio_df['Quant'], start_date, end_date, num_port)
 
 	print('Portfolio Return: {:.2}'.format(port1.portfolio_returns()))
 	print('Portfolio Volatility: {:.2}'.format(port1.portfolio_volatility()))
@@ -206,15 +281,30 @@ def fetchData():
 	print('Max Sharpe Ratio: {:.2}'.format(port1.max_sharpe_ratio()))
 	print('Max Sharpe Weights: ', port1.max_sharpe_weight())
 	
+	df_portfolio = local_portfolio_df.copy()
+	df_returns = port1.return_array()
+	df_volatility = port1.volatility_array()
+	df_sharpe = port1.sharpe_array()
+	df_portfolio_sharpe = port1.max_sharpe_weight()
+
+
+def show_plt():
+	"""Call function to plot at aditional window."""
+	charWin.MyUI()
+	charWin.show()
+	
 
 if __name__ == '__main__':
 
 	df_portfolio = pd.DataFrame()
+	df_portfolio_sharpe = pd.DataFrame()
 	df_returns = pd.DataFrame()
-	df_volume = pd.DataFrame()
+	df_volatility = pd.DataFrame()
+	df_sharpe = pd.DataFrame()
 	
 	app = QtWidgets.QApplication(sys.argv)
-	dlg = uic.loadUi('test.ui')
+	dlg = MainWindow()
+	charWin = NewWindow()
 	
 	num_port = int(dlg.txt_iter.text())
 	dlg.txt_ticker.setFocus()
@@ -223,7 +313,10 @@ if __name__ == '__main__':
 	dlg.txt_ticker.textChanged.connect(ticker_box_changed)
 
 	dlg.btn_generate.clicked.connect(fetchData)
+	df_returns = fetchData()
 	dlg.btn_removeAll.clicked.connect(clear_table)
+	dlg.btn_plt.clicked.connect(show_plt)
+	charWin.btn_back.clicked.connect(lambda: charWin.close())
 
 	dlg.show()
 	app.exec()

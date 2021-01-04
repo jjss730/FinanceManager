@@ -8,10 +8,13 @@ from PyQt5.QtWidgets import QWidget, QMainWindow
 import numpy as np
 import pandas as pd
 import yfinance as yf
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg\
 	as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib import style
+style.use('ggplot')
 
 
 class MainWindow(QMainWindow):
@@ -21,24 +24,34 @@ class MainWindow(QMainWindow):
 		super(MainWindow, self).__init__()
 		uic.loadUi('test.ui', self)
 		self.show()
-		
-#	def MyUI(self):
-#		canvas = Canvas(self, width=8, height=4)
-#		canvas.move(50, 0)
 
 
-class NewWindow(QMainWindow):
+class EF_Window(QWidget):
 	"""Create Result Window."""
 	
 	def __init__(self):
-		super(NewWindow, self).__init__()
+		super(EF_Window, self).__init__()
 		uic.loadUi('chartWindow.ui', self)
 #		self.show()
 		
-	def MyUI(self):
+	def Efficient_frontier_win(self):
 		"""Prepare Canvas for result chart."""
-		canvas = Canvas(self, width=6, height=3)
-		canvas.move(5, 5)
+		canvas = Canvas(self, width=6, height=6)
+		canvas.move(10, 10)
+		
+
+class Ret_Window(QWidget):
+	"""Create Result Window."""
+	
+	def __init__(self):
+		super(Ret_Window, self).__init__()
+		uic.loadUi('StockChartWindow.ui', self)
+#		self.show()
+		
+	def Stock_chart_win(self):
+		"""Prepare Canvas to show Stock charts comparizon."""
+		stock_canvas = Stock_Canvas(self, width=12, height=8)
+		stock_canvas.move(5, 5)
 
 
 class Portfolio:
@@ -67,7 +80,8 @@ class Portfolio:
 		#print(self.local_volume.head())
 		#df_returns = local_returns.copy()
 		#df_volume = local_volume.copy()
-		local_log_returns = np.log(self.local_returns / self.local_returns.shift(1))
+		self.local_log_returns = \
+			np.log(self.local_returns / self.local_returns.shift(1))
 		np.random.seed(1)
 		all_weights = np.zeros((self.variations, len(self.local_returns.columns)))
 		self.ret_arr = np.zeros(self.variations)
@@ -80,9 +94,9 @@ class Portfolio:
 			weights = weights / np.sum(weights)
 			all_weights[j, :] = weights         # Save weights
 			self.ret_arr[j] = np.sum((
-				local_log_returns.mean() * weights * 252))   # Expected return
+				self.local_log_returns.mean() * weights * 252))   # Expected return
 			self.vol_arr[j] = np.sqrt(np.dot(weights.T, np.dot(
-				local_log_returns.cov() * 252, weights)))  # Expected volatility.
+				self.local_log_returns.cov() * 252, weights)))  # Expected volatility.
 			self.sharpe_arr[j] = self.ret_arr[j] / self.vol_arr[j]
 		
 		self.max_sr_ret = self.ret_arr[self.sharpe_arr.argmax()]
@@ -92,11 +106,12 @@ class Portfolio:
 			self.sharpe_arr[self.sharpe_arr.argmax()]
 		self.port_weights = \
 			df_portfolio['Quant'].tolist() / df_portfolio['Quant'].sum()
-		self.port_ret = np.sum((local_log_returns.
+		self.port_ret = np.sum((self.local_log_returns.
 			mean() * self.port_weights * 252))   # Expected return
 		self.port_vol = np.sqrt(np.dot(self.port_weights.T, np.dot(
-			local_log_returns.cov() * 252, self.port_weights)))  # Expected volatility
+			self.local_log_returns.cov() * 252, self.port_weights)))  # Expected volatility
 		self.port_sharpe = self.port_ret / self.port_vol
+		self.opt_returns = self.local_log_returns.dot(self.max_sr_weights)
 		
 	def set_stocks(self, stocks):
 		"""Return list of stocks in the portfolio."""
@@ -151,13 +166,26 @@ class Portfolio:
 		"""Provide Sharpe Ratio Array."""
 		return self.sharpe_arr
 	
+	def log_returns(self):
+		"""Provide dataframe containing the log return of the portfolio."""
+		return self.local_log_returns
+	
+	def opt_returns(self):
+		"""Provide dataframe containing the optimized return of the portfolio."""
+		return self.opt_returns
+	
 		
 class Canvas(FigureCanvas):
 	"""Include chart in PyQT5."""
 	
 	def __init__(self, parent = None, width = 5, height = 5, dpi = 100):
-		fig = Figure(figsize=(width, height), edgecolor='black', dpi = dpi)
-#		self.axes = fig.add_subplot(2, 2, 1)
+		fig = Figure(figsize=(width, height), dpi = dpi)
+		self.gs1 = gridspec.GridSpec(
+			nrows = 2,   # Set grid system for subplots
+			ncols = 2,
+			figure = fig,
+			wspace = 0.1,  # Width spacing.expressed as a fraction of average axis width
+			hspace=0.5)  # Height spacing.expressed as a fraction of average axis height
 		FigureCanvas.__init__(self, fig)
 
 		self.setParent(parent)
@@ -168,37 +196,110 @@ class Canvas(FigureCanvas):
 		global df_portfolio
 		global df_portfolio_sharpe
 		
+		# Setup colors for pie chart
+		colors = ['b', 'g', 'r', 'c', 'm', 'k', 'w']
+		currentColor = 0
+		legendVars = []
+# 		for i in range(len(df_portfolio.columns)):
+# 			y[i] = log_returns[log_returns.columns[i]]
+# 			ax.plot_date(x, y[i],
+# 				color = colors[currentColor],
+# 				linewidth = 0.3,
+# 				linestyle = '-',
+# 				marker = ',',
+# 				xdate = True)
+# 			legendVars.append(log_returns.columns[i])
+# 			currentColor += 1
+# 			if (currentColor >= len(colors)):
+# 				currentColor = 0
+		
 		# Prepare portfolio distribution pie chart
 		port_y = df_portfolio['Stocks']
 		port_x = df_portfolio['Quant']
-		ax = self.figure.add_subplot(2, 2, 1, title = "Curerent Portfolio")
-		ax.pie(port_x, labels = port_y)
+		ax = self.figure.add_subplot(self.gs1[0, 0],
+			title = "Current Portfolio")  # Position graph at grid\
+		#position [line 0, column 0]
+		ax.pie(port_x, labels = port_y, autopct = '%1.1f%%', labeldistance = 1.2)
 		
 		# Prepare highest Sharpe ratio distribution pie chart
 		shrp_y = df_portfolio['Stocks']
 		shrp_x = df_portfolio_sharpe
-#		shrp_x = df_portfolio['Quant']
-		ax2 = self.figure.add_subplot(2, 2, 2, title = "Optimized Portfolio")
-		ax2.pie(shrp_x, labels = shrp_y)
+		ax2 = self.figure.add_subplot(
+			self.gs1[0, 1],
+			title = "Optimized Portfolio")  # Position graph at grid \
+		#position [line 0, column 1]
+		ax2.pie(shrp_x, labels = shrp_y, autopct = '%1.1f%%', labeldistance = 1.2)
 		
 		# Prepare Efficient Fronteir chart
-		ax3 = self.figure.add_subplot(2, 2, 3,
-				title = "Efficient Fronteir",
-				xlabel = "Expected Volatillity",
-				ylabel = "Expected Returns")
-#		ax3 = self.figure.add_subplot(gs1[:1, :],
-#				title = "Efficient Fronteir",
-#				xlabel = "Expected Volatillity",
-#				ylabel = "Expected Returns")
-		ax3.scatter(df_volatility, df_returns, c= df_sharpe)
+		ax3 = self.figure.add_subplot(
+			self.gs1[1, :],  # Position graph at grid position [line 1, all columns]
+			title = "Efficient Frontier",
+			xlabel = "Expected Volatillity",
+			ylabel = "Expected Returns")
+		ax3.scatter(df_volatility, df_returns, s=10, c= df_sharpe)
+		ax3.scatter(max_sharpe_volatility, max_sharpe_return,
+			s = 200, c = 'red', marker = "*")
+		ax3.scatter(portfolio_volatility, portfolio_returns,
+			s = 100, c = 'red', alpha = 0.8, marker = "o")
 
-		
-#class AppDemo(QWidget):
+
+class Stock_Canvas(FigureCanvas):
+	"""Include stock comparizon chart in PyQT5."""
 	
-#	def __init__(self):
-#		super().__init__()
-#		self.resize(200, 200)
-#		chart = Canvas(self)
+	def __init__(self, parent = None, width = 5, height = 5, dpi = 100):
+		fig = Figure(figsize=(width, height), dpi = dpi)
+		self.gs1 = gridspec.GridSpec(
+			nrows = 1,   # Set grid system for subplots
+			ncols = 1,
+			figure = fig,
+			wspace = 0.1,  # Width spacing.expressed as a fraction of average axis width
+			hspace=0.5)  # Height spacing.expressed as a fraction of average axis height
+		FigureCanvas.__init__(self, fig)
+
+		self.setParent(parent)
+		self.plot()
+		
+	def plot(self):
+		"""Plot pie chart of portfolio distribution."""
+		global df_portfolio
+		global log_returns
+		
+		# Plot Return charts.
+		colors = ['b', 'g', 'r', 'c', 'm', 'k', 'w']
+		currentColor = 0
+		legendVars = []
+		x = log_returns.index
+		y = pd.DataFrame()
+#		y = log_returns['QQQ']
+#		y2 = log_returns['X']
+#		y3 = log_returns['F']
+		y4 = opt_return
+		
+		ax = self.figure.add_subplot(self.gs1[0, 0],
+						title = "Returns Chart",
+						ylabel = "Returns [%]",
+						xlabel = "Date")  # Position graph at grid position [line 0, column 0]
+
+		for i in range(len(log_returns.columns)):
+			y[i] = log_returns[log_returns.columns[i]]
+			ax.plot_date(x, y[i],
+				color = colors[currentColor],
+				linewidth = 0.3,
+				linestyle = '-',
+				marker = ',',
+				xdate = True)
+			legendVars.append(log_returns.columns[i])
+			currentColor += 1
+			if (currentColor >= len(colors)):
+				currentColor = 0
+
+
+#		ax.plot_date(x, y, 'g', linewidth = 0.15, xdate = True)
+#		ax.plot_date(x, y2, 'b', linewidth = 0.15, xdate = True)
+#		ax.plot_date(x, y3, 'r', linewidth = 0.15, xdate = True)
+		
+		ax.plot_date(x, y4, 'black', linewidth = 1, xdate = True)
+		ax.legend(legendVars)
 
 
 def add_item():
@@ -247,6 +348,7 @@ def clear_table():
 	"""Clear porfolio stocks table."""
 	dlg.tbl_portfolio.clear()
 	dlg.tbl_portfolio.setRowCount(0)
+	dlg.tbl_portfolio.setHorizontalHeaderLabels(['Stocks', 'Quant'])
 
 
 def ticker_box_changed():
@@ -257,21 +359,60 @@ def ticker_box_changed():
 		dlg.btn_add.setEnabled(True)
 
 
-def fetchData():
+def fetch_stock_return_data():
 	"""Gather data from yfinance API and calls portfolio calculations."""
 	global df_returns
 	global df_volatility
 	global df_sharpe
 	global df_portfolio
 	global df_portfolio_sharpe
+	global max_sharpe_return
+	global max_sharpe_volatility
+	global portfolio_returns
+	global portfolio_volatility
+	global num_port
+	global port_sharpe
+	global log_returns
+	global opt_return
+	global max_sr_weights
 	
 	local_portfolio_df = read_table()
 	# read_table()
 	start_date = dlg.dt_init.text()
 	end_date = dlg.dt_end.text()
+	num_port = int(dlg.txt_iter.text())
 	port1 = Portfolio(local_portfolio_df['Stocks'],
 			local_portfolio_df['Quant'], start_date, end_date, num_port)
+	log_returns = port1.log_returns()
+	max_sr_weights = port1.max_sharpe_weight()
+	opt_return = log_returns.dot(max_sr_weights)
+	print(opt_return)
+	show_returns_plt()
 
+
+def fetch_EF_data():
+	"""Gather data from yfinance API and calls portfolio calculations."""
+	global df_returns
+	global df_volatility
+	global df_sharpe
+	global df_portfolio
+	global df_portfolio_sharpe
+	global max_sharpe_return
+	global max_sharpe_volatility
+	global portfolio_returns
+	global portfolio_volatility
+	global num_port
+	global port_sharpe
+	global max_sharpe
+	
+	local_portfolio_df = read_table()
+	# read_table()
+	start_date = dlg.dt_init.text()
+	end_date = dlg.dt_end.text()
+	num_port = int(dlg.txt_iter.text())
+	
+	port1 = Portfolio(local_portfolio_df['Stocks'],
+			local_portfolio_df['Quant'], start_date, end_date, num_port)
 	print('Portfolio Return: {:.2}'.format(port1.portfolio_returns()))
 	print('Portfolio Volatility: {:.2}'.format(port1.portfolio_volatility()))
 	print('Portfolio Sharpe Ratio: {:.2}'.format(port1.portfolio_sharpe()))
@@ -280,18 +421,38 @@ def fetchData():
 	print('Max Sharpe Volatility: {:.2}'.format(port1.max_sharpe_volatility()))
 	print('Max Sharpe Ratio: {:.2}'.format(port1.max_sharpe_ratio()))
 	print('Max Sharpe Weights: ', port1.max_sharpe_weight())
-	
 	df_portfolio = local_portfolio_df.copy()
 	df_returns = port1.return_array()
 	df_volatility = port1.volatility_array()
 	df_sharpe = port1.sharpe_array()
 	df_portfolio_sharpe = port1.max_sharpe_weight()
+	max_sharpe_return = port1.max_sharpe_return()
+	max_sharpe_volatility = port1.max_sharpe_volatility()
+	portfolio_returns = port1.portfolio_returns()
+	portfolio_volatility = port1.portfolio_volatility()
+	port_sharpe = port1.portfolio_sharpe()
+	max_sharpe = port1.max_sharpe_ratio()
+	print('Data Fetched')
+	show_EF_plt()
 
 
-def show_plt():
+def show_EF_plt():
 	"""Call function to plot at aditional window."""
-	charWin.MyUI()
-	charWin.show()
+	EF_Win.Efficient_frontier_win()
+	EF_Win.lbl_NumSim2.setText(str(num_port))
+	EF_Win.lbl_ExpRetCur.setText("{:.1f}%".format(portfolio_returns * 100))
+	EF_Win.lbl_ExpVolCur.setText("{:.1f}%".format(portfolio_volatility * 100))
+	EF_Win.lbl_ExpRetPort.setText("{:.1f}%".format(max_sharpe_return * 100))
+	EF_Win.lbl_ExpVolPort.setText("{:.1f}%".format(max_sharpe_volatility * 100))
+	EF_Win.lbl_ExpSrCur.setText("{:.1f}%".format(port_sharpe * 100))
+	EF_Win.lbl_ExpSrPort.setText("{:.1f}%".format(max_sharpe * 100))
+	EF_Win.show()
+
+
+def show_returns_plt():
+	"""Call function to plot at aditional window."""
+	Ret_Win.Stock_chart_win()
+	Ret_Win.show()
 	
 
 if __name__ == '__main__':
@@ -304,19 +465,20 @@ if __name__ == '__main__':
 	
 	app = QtWidgets.QApplication(sys.argv)
 	dlg = MainWindow()
-	charWin = NewWindow()
+	EF_Win = EF_Window()
+	Ret_Win = Ret_Window()
 	
-	num_port = int(dlg.txt_iter.text())
 	dlg.txt_ticker.setFocus()
 	dlg.btn_add.clicked.connect(add_item)
 	dlg.txt_quant.returnPressed.connect(add_item)
 	dlg.txt_ticker.textChanged.connect(ticker_box_changed)
 
-	dlg.btn_generate.clicked.connect(fetchData)
-	df_returns = fetchData()
+	dlg.btn_generate.clicked.connect(fetch_EF_data)
 	dlg.btn_removeAll.clicked.connect(clear_table)
-	dlg.btn_plt.clicked.connect(show_plt)
-	charWin.btn_back.clicked.connect(lambda: charWin.close())
+#	dlg.btn_plt.clicked.connect(show_EF_plt)
+	EF_Win.btn_back.clicked.connect(lambda: EF_Win.close())
+	Ret_Win.btn_back2.clicked.connect(lambda: Ret_Win.close())
+	dlg.btn_stockReturns.clicked.connect(fetch_stock_return_data)
 
 	dlg.show()
 	app.exec()

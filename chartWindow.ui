@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>631</width>
-    <height>367</height>
+    <width>621</width>
+    <height>812</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,14 +16,219 @@
   <widget class="QPushButton" name="btn_back">
    <property name="geometry">
     <rect>
-     <x>230</x>
-     <y>320</y>
+     <x>260</x>
+     <y>760</y>
      <width>111</width>
      <height>31</height>
     </rect>
    </property>
    <property name="text">
     <string>Back</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpRet">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>690</y>
+     <width>91</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Expected Return</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpVol">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>710</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Expected Volatility</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_CurPort">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>660</y>
+     <width>91</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Current Portfolio</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_OptPort">
+   <property name="geometry">
+    <rect>
+     <x>350</x>
+     <y>660</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Optimized Portfolio</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpRetCur">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>690</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string>&lt;ExpRetCur&gt;</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpVolCur">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>710</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string>&lt;ExpVolCur&gt;</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpRetPort">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>690</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string>&lt;ExpRetOpt&gt;</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpVolPort">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>710</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string>&lt;ExpVolOpt&gt;</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_NumSim">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>620</y>
+     <width>121</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Number of simulations:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_NumSim2">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>620</y>
+     <width>121</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;Number of simulations&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpSrPort">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>730</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string>&lt;SharpeOpt&gt;</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_SharpeRatio">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>730</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sharpe Ratio</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_ExpSrCur">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>730</y>
+     <width>81</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string>&lt;SharpeCur&gt;</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
  </widget>

@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>396</width>
+    <width>623</width>
     <height>417</height>
    </rect>
   </property>
@@ -145,13 +145,13 @@
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>230</y>
-      <width>111</width>
-      <height>23</height>
+      <y>190</y>
+      <width>141</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
-     <string>Generate Chart</string>
+     <string>Efficient Frontier Chart</string>
     </property>
    </widget>
    <widget class="QDateEdit" name="dt_init">
@@ -159,7 +159,7 @@
      <rect>
       <x>240</x>
       <y>80</y>
-      <width>110</width>
+      <width>141</width>
       <height>22</height>
      </rect>
     </property>
@@ -214,7 +214,7 @@
      <rect>
       <x>240</x>
       <y>130</y>
-      <width>110</width>
+      <width>141</width>
       <height>22</height>
      </rect>
     </property>
@@ -261,8 +261,8 @@
    <widget class="QLineEdit" name="txt_iter">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>190</y>
+      <x>410</x>
+      <y>80</y>
       <width>113</width>
       <height>20</height>
      </rect>
@@ -280,8 +280,8 @@
    <widget class="QLabel" name="lbl_Iterations">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>170</y>
+      <x>410</x>
+      <y>60</y>
       <width>111</width>
       <height>16</height>
      </rect>
@@ -290,21 +290,92 @@
      <string>Number of Iterations</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btn_plt">
+   <widget class="QPushButton" name="btn_stockReturns">
     <property name="geometry">
      <rect>
       <x>240</x>
-      <y>290</y>
-      <width>111</width>
-      <height>23</height>
+      <y>240</y>
+      <width>141</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
-     <string>Matplotlib</string>
+     <string>Stock Returns Chart</string>
     </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>623</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSave_as"/>
+   </widget>
+   <widget class="QMenu" name="menuAnalysis">
+    <property name="title">
+     <string>Analysis</string>
+    </property>
+    <addaction name="actionEfficient_Frontier"/>
+    <addaction name="actionStocks_Comparizon"/>
+    <addaction name="actionChart_Analysis"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuAnalysis"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <action name="actionEfficient_Frontier">
+   <property name="text">
+    <string>Efficient Frontier</string>
+   </property>
+  </action>
+  <action name="actionStocks_Comparizon">
+   <property name="text">
+    <string>Stocks Comparizon</string>
+   </property>
+  </action>
+  <action name="actionChart_Analysis">
+   <property name="text">
+    <string>Chart Analysis</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
